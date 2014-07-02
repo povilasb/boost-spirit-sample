@@ -4,9 +4,10 @@
 #include <boost/spirit/include/qi.hpp>
 
 
+namespace qi = boost::spirit::qi;
+
 using namespace std;
 
-namespace qi = boost::spirit::qi;
 
 /**
  * Very simple example of number parsing.
@@ -46,7 +47,7 @@ main(void)
 	});
 */
 
-	cout << "CSV number sum: " << sum_csv_numbers("1, 2, 3") << '\n';
+	cout << "CSV number sum: " << sum_csv_numbers("1,2,3") << '\n';
 
 	return 0;
 }
@@ -95,10 +96,12 @@ parse_number(const string& str)
 int
 sum_csv_numbers(const string& str)
 {
-	qi::rule<string::const_iterator, int()> number_rule;
 	int result = 0;
-	// TODO: finish summation: int_[ref(result) += _1] or smth like that.
-	number_rule = qi::int_ >> *(',' >> qi::int_);
+	auto sum = [&](int num) {
+		result += num;
+	};
+	qi::rule<string::const_iterator, int()> number_rule(
+		qi::int_[sum] >> *(',' >> qi::int_[sum]));
 
 	bool match = qi::parse(str.begin(), str.end(), number_rule);
 	if (!match) {
